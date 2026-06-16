@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  font-family: system-ui;
+  background: #f7f7ff;
+  text-align: center;
+  padding: 20px;
+}
+
+h1 { color: #2563eb; }
+
+.carousel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+img {
+  width: 260px;
+  border-radius: 12px;
+}
+
+button {
+  cursor: pointer;
+}
+
+#cta {
+  width: 100%;
+  padding: 16px;
+  background: #22c55e;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+}
+
+.hidden {
+  display: none;
+}
