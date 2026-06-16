@@ -2,33 +2,80 @@ import { validate } from "./validator.js";
 import { slider } from "./slider.js";
 import { modal } from "./modal.js";
 
-// MUST be first: fail fast if product missing
-const p = window.PRODUCT;
+import { initTracking, trackViewContent, trackCTA } from "./tracking.js";
+import { getLang } from "./i18n.js";
+import { renderProduct, renderBadges } from "./engine.js";
 
-if (!p) {
-  document.body.innerHTML = "Product not found or not loaded.";
-  throw new Error("Missing PRODUCT object");
+/* -----------------------------
+   SAFE FALLBACK (ads protection)
+------------------------------ */
+const fallback = {
+  brand: { ar: "متجري", en: "My Store", fr: "Ma Boutique" },
+  name: { ar: "منتج غير متوفر", en: "Product unavailable", fr: "Produit indisponible" },
+  description: {
+    ar: "حدث خطأ في تحميل المنتج",
+    en: "Error loading product",
+    fr: "Erreur de chargement du produit"
+  },
+  images: ["assets/images/1.jpg"],
+  tallyUrl: "#"
+};
+
+/* -----------------------------
+   PRODUCT LOADING (SAFE MODE)
+------------------------------ */
+const p =
+  (window.PRODUCT && Array.isArray(window.PRODUCT.images))
+    ? window.PRODUCT
+    : fallback;
+
+/* -----------------------------
+   VALIDATION (CRITICAL GATE)
+------------------------------ */
+try {
+  validate(p);
+} catch (err) {
+  console.error("Validation failed:", err);
+  document.body.innerHTML = "Product configuration error.";
+  throw err;
 }
 
-// Validate before using anything
-validate(p);
+/* -----------------------------
+   LANGUAGE SYSTEM
+------------------------------ */
+const lang = getLang();
 
-// Safe rendering (NO innerHTML anywhere)
-document.getElementById("brand").textContent = p.brand.ar;
-document.getElementById("name").textContent = p.name.ar;
-document.getElementById("desc").textContent = p.description.ar;
+/* -----------------------------
+   RENDER UI (ENGINE LAYER)
+------------------------------ */
+renderProduct(p, lang);
+renderBadges();
 
-// CTA
-document.getElementById("cta").textContent = "اطلب الآن";
+/* -----------------------------
+   TRACKING (META ADS)
+------------------------------ */
+initTracking("YOUR_PIXEL_ID");
+trackViewContent(p);
 
-// Slider
+/* -----------------------------
+   IMAGE SLIDER
+------------------------------ */
 const img = document.getElementById("img");
 slider(p.images, img);
 
-// Modal (Tally)
+/* -----------------------------
+   MODAL (TALLY FORM)
+------------------------------ */
 modal(
   document.getElementById("cta"),
   document.getElementById("modal"),
   document.getElementById("tally"),
   p.tallyUrl
 );
+
+/* -----------------------------
+   CTA TRACKING (IMPORTANT)
+------------------------------ */
+document.getElementById("cta").addEventListener("click", () => {
+  trackCTA();
+});
